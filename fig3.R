@@ -21,6 +21,8 @@ par1 <- rep(3, 3)
 par2 <- rep(4, 3)
 
 sim <- mix.logacd(7500, 500, para, cpts, ps, qs, feps, par1, par2)
+
+
 dat <- sim$y
 dat1 <- data.frame(y=dat, x=c(1:length(dat)))
 
@@ -48,7 +50,6 @@ res1 <- recursive_mat(x = dat, initval = est, p = p, q = q,
                       momente = momente)
 res1[1,] <- res1[1,] + difference
 
-
 ##### Black-White Plot  ####
 aa <- res2
 aa[,c(1:1500)] <- NA
@@ -57,48 +58,25 @@ dat3 <- data.frame(y=as.numeric(t(aa)),
                    x= rep(1:7500, 6),
                    method = rep("PEF", 7500*6))
 
-aa <- res1
-aa[,c(1:1500)] <- NA
-dat4 <- data.frame(y=as.numeric(t(aa)),
-                   pars = rep(1:6, each=7500),
-                   x= rep(1:7500, 6),
-                   method = rep("EF", 7500*6))
-
-mydat <- rbind(dat3, dat4)
-mydat$pars <- factor(mydat$pars)
-
 labels <- list(expression(omega), expression(alpha[1]),
                expression(alpha[2]), expression(alpha[3]),
                expression(alpha[4]), expression(alpha[5]))
 
-span <- 0.25
-x <- res2[2, -c(1:1500)]
-n <- length(x)
-y.loess <- loess(x~I(1:n), span=span)
-yy <- y.loess[[2]]
 
-dat <- data.frame(y= x[3000:5000],
-                  x= 1:length(x[3000:5000]))
-dat1 <- data.frame(y= yy[3000:5000],
-                   x= 1:length(x[3000:5000]))
-
-
-fig2 <- ggplot(data=dat, aes(y=y, x=x))+
+dat3$pars <- factor(dat3$pars)
+fig <- ggplot(data = dat3, aes(y=y, x=x, linetype=pars))+
   geom_line()+
-  geom_line(data=dat1, aes(y=y, x=x), linetype="longdash")+
+  geom_vline(xintercept=c(3000,5250), colour="black",
+             linetype="dotted", size=1.5)+
   theme_bw()+
-  geom_segment(aes(x=c(750),
-                   xend=c(750), 
-                   y=yy[3750]+0.001,
-                   yend=yy[3750]),
-               arrow=arrow(length=unit(0.3,"cm")),
-               colour="black",size=1)+
-  xlab("Index")+ylab("Estimated Values")+
+  ylab("Estimated Values")+xlab("Index")+
   theme(axis.text=element_text(size=15),
         axis.title=element_text(size=15,face="bold"),
         strip.text.x = element_text(size = 18),
         strip.text.y = element_text(size = 18),
         legend.text = element_text(size = 18),
         legend.position = "right",
-        panel.grid.major.x=element_blank())
-
+        panel.grid.major.x=element_blank())+
+  guides(linetype = guide_legend( title = " "))+
+  scale_linetype_manual(breaks = levels(dat3$pars),
+                     values=1:6,labels =labels)
